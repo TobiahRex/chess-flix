@@ -11,6 +11,7 @@ const CurrentGame = (props) => {
   } = props;
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const [boardPosition, setBoardPosition] = useState('start');
+  const [boardOrientation, setBoardOrientation] = useState('white');
 
   const handleNextMove = () => {
     if (currentMoveIndex < gameData.game?.history().length) {
@@ -48,7 +49,8 @@ const CurrentGame = (props) => {
   };
 
   useEffect(() => {
-    setBoardPosition('start');
+    setBoardPosition(gameData.game?.fen());
+    setTargetPosition(gameData.game?.fen());
     setCurrentMoveIndex(0);
   }, [gameData]);
 
@@ -144,6 +146,7 @@ const CurrentGame = (props) => {
           position={boardPosition}
           draggable={false}
           boardWidth={500}
+          boardOrientation={boardOrientation}
         />
         <div>
           <button
@@ -178,6 +181,12 @@ const CurrentGame = (props) => {
             }}
           >
             Reset
+          </button>
+          <button
+            onClick={() => setBoardOrientation(boardOrientation === 'white' ? 'black' : 'white')}
+            style={{ fontSize: '16px', cursor: 'pointer' }}
+          >
+            🔄
           </button>
         </div>
       </div>

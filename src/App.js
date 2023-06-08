@@ -61,7 +61,6 @@ const App = () => {
   };
 
   const handleUpdateGame = (movesToAdd) => {
-    console.log(gameData.game)
     const chess = new Chess();
     gameData.game?.history().forEach((move) => chess.move(move));
     movesToAdd.forEach((move) => chess.move(move));
