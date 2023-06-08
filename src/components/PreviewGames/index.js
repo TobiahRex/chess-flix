@@ -10,6 +10,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
   const [evaluation, setEvaluation] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [orientation, setBoardOrientation] = useState('white');
   const timerId = useRef(null);
   const gameRef = useRef(new Chess());
 
@@ -60,8 +61,8 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
 
   const handleSetPosition = () => {
     clearInterval(timerId.current);
-    const moves = gameRef.current.history();
-    updateGame(moves.slice(0, currentIndex + 1));
+    const moves = gameRef.current.history().slice(0, currentIndex + 1);
+    updateGame(moves.slice(0));
   };
 
   const playMove = useCallback((index) => {
@@ -129,6 +130,12 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
             ⏩
           </button>
           <button
+            type="button"
+            onClick={() => setBoardOrientation(orientation === 'white' ? 'black' : 'white')}
+          >
+            🔄
+          </button>
+          <button
             disabled={gameData.type === 'fen' || isPlaying}
             type="button"
             onClick={handleSetPosition}
@@ -144,6 +151,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
         draggable={false}
         boardWidth={350}
         animationDuration={300}
+        boardOrientation={orientation}
       />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div style={{ display: 'flex', gap: '10px' }}>
