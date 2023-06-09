@@ -53,13 +53,6 @@ const App = () => {
     }
   };
 
-  const getPositionEval = async (fen) => {
-    const data = await handleGetCurrentEval({ fen });
-    const { evaluation } = data;
-    setFetching(false);
-    setCurrentEval(evaluation);
-  };
-
   const handleUpdateGame = (movesToAdd) => {
     const chess = new Chess();
     const history = gameData.game?.history({ verbose: true });
@@ -107,7 +100,6 @@ const App = () => {
           currentEval={currentEval}
           gameData={gameData}
           setTargetPosition={setTargetPosition}
-          getPositionEval={getPositionEval}
         />
         <ChessData setCurrentGame={handleSetCurrentGame} />
       </div>
