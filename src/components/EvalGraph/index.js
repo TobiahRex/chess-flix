@@ -55,7 +55,7 @@ export default function EvalGraph({ gameData, gameRef }) {
 
   return (
     <div>
-      <canvas ref={chartRef} width={350} height={150} />
+      <canvas ref={chartRef} minWidth={350} height={150} />
     </div>
   );
 }

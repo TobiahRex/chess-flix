@@ -62,7 +62,16 @@ const App = () => {
 
   const handleUpdateGame = (movesToAdd) => {
     const chess = new Chess();
-    gameData.game?.history().forEach((move) => chess.move(move));
+    const history = gameData.game?.history({ verbose: true });
+    for (let i = 0; i < history.length; i++) {
+      const move = history[i];
+      if (move.after !== targetPosition) {
+        chess.move(move);
+      } else {
+        chess.move(move);
+        break;
+      }
+    }
     movesToAdd.forEach((move) => chess.move(move));
     setGameData({
       type: 'fen',
