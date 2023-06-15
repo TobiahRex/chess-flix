@@ -52,6 +52,7 @@ export default function AnalysisControls(props) {
             marginRight: '10px',
             padding: '5px 10px',
             cursor: 'pointer',
+            backgroundColor: '#24221e'
           }}
         >
           {fetching ? 'Analyzing...' : 'Analyze'}

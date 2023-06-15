@@ -23,7 +23,7 @@ export default function EvalGraph({ gameData, gameRef }) {
           datasets: [
             {
               data: data,
-              borderColor: 'rgba(0, 0, 250, 0.4)',
+              borderColor: 'gray',
               borderWidth: 1,
               backgroundColor: (ctx) => {
                 const values = ctx.chart.data.datasets[0].data;

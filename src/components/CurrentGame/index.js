@@ -127,7 +127,7 @@ const CurrentGame = (props) => {
                 cursor: 'pointer',
                 fontSize: '16px',
                 background: 'none',
-                fontWeight: movePair[0].index - 1 === currentMoveIndex ? 'bold' : 'normal',
+                color: movePair[0].index - 1 === currentMoveIndex ? '#57EAFF' : '#BABABA',
               }}
             >
               {`${movePair[0].san}, `}
@@ -142,7 +142,7 @@ const CurrentGame = (props) => {
                   cursor: 'pointer',
                   fontSize: '16px',
                   background: 'none',
-                  fontWeight: movePair[1].index - 1 === currentMoveIndex ? 'bold' : 'normal',
+                  color: movePair[1].index - 1 === currentMoveIndex ? '#57EAFF' : '#BABABA',
                 }}
               >
                 {movePair[1].san}
@@ -170,7 +170,7 @@ const CurrentGame = (props) => {
           <strong
             style={{
               fontSize: '20px',
-              color: evals.length ? (evals[currentMoveIndex] > 0 ? 'green' : 'red') : 'black',
+              color: evals.length ? (evals[currentMoveIndex] > 0 ? 'lawngreen' : 'red') : 'black',
             }}
           >
             {

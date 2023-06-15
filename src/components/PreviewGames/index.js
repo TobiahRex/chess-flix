@@ -110,7 +110,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
                   cursor: 'pointer',
                   fontSize: '16px',
                   background: 'none',
-                  fontWeight: currentIndex === index ? 'bold' : 'normal',
+                  color: currentIndex === index ? '#57EAFF' : '#BABABA',
                 }}
               >
                 {index % 2 === 0
@@ -157,7 +157,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
         <div style={{ display: 'flex', gap: '10px' }}>
           Evaluation&nbsp;
           {evaluation > 0 ? (
-            <span style={{ color: 'green' }}>{parseCentipawn(evaluation)}</span>
+            <span style={{ color: 'lawngreen' }}>{parseCentipawn(evaluation)}</span>
           ) : (
             <span style={{ color: 'red' }}>{parseCentipawn(evaluation)}</span>
           )}

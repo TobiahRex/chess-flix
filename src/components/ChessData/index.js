@@ -113,7 +113,7 @@ const ChessData = ({ setCurrentGame }) => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column', gap: '5px' }}>
-                    <span style={{ color: game.result === 'win' ? 'green' : 'red' }}>Result: {game.result}</span>
+                    <span style={{ color: game.result === 'win' ? 'lawngreen' : 'red' }}>Result: {game.result}</span>
                     <span>Time Control: {game.time_control}</span>
                     <span>End Time: {game.end_time}</span>
                     <span>Game Type: {game.time_class}</span>

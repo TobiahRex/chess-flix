@@ -1,3 +1,25 @@
+body {
+  background-color: #282c34;
+  color: #bababa;
+}
+
+textarea {
+  background-color: #24221e;
+  color: #bababa;
+}
+
+button {
+  background-color: #24221e;
+  color: #bababa;
+  border-radius: 4px;
+  border: none;
+
+}
+
+button:hover {
+  color: #57EAFF
+}
+
 .App {
   text-align: center;
   margin: 2rem;
