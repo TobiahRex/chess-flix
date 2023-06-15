@@ -7,18 +7,23 @@ import PreviewGames from './components/PreviewGames';
 import ChessData from './components/ChessData';
 import './App.css';
 import AnalysisControls from './components/AnalysisControls';
-import { handleGetPreviews, handleGetCurrentEval } from './services';
+import { handleGetPreviews, handleGameReset } from './services';
 
 const App = () => {
   const [games, setGamePreviews] = useState([]);
-  const [previewCount, setPreviewCount] = useState(1);
-  const [depth, setDepth] = useState(5);
+  const [previewCount, setPreviewCount] = useState(3);
+  const [depth, setDepth] = useState(20);
   const [gameData, setGameData] = useState({ type: '', game: null, move: 0 });
   const [fetching, setFetching] = useState(false);
-  const [currentEval, setCurrentEval] = useState(0);
+  const [orientation, setOrientation] = useState('white');
   const [targetPosition, setTargetPosition] = useState('');
 
-  const handleGameSubmission = (text) => {
+  const handleGameSubmission = async (text) => {
+    const res = await handleGameReset();
+    if (res.error) {
+      alert(res.error);
+      return;
+    }
     const chess = new Chess();
     if (validateFen(text).ok) {
       chess.load(text);
@@ -27,6 +32,7 @@ const App = () => {
         game: chess,
         move: 0,
       });
+      setTargetPosition(chess.fen());
     } else {
       chess.loadPgn(text);
       setGameData({
@@ -34,7 +40,12 @@ const App = () => {
         game: chess,
         move: 0,
       });
+      setTargetPosition('start');
     }
+    setFetching(false);
+    setPreviewCount(3);
+    setDepth(20);
+    setGamePreviews([]);
   };
 
   const getPreviews = async () => {
@@ -53,38 +64,19 @@ const App = () => {
     }
   };
 
-  const handleUpdateGame = (movesToAdd) => {
-    const chess = new Chess();
-    const history = gameData.game?.history({ verbose: true });
-    for (let i = 0; i < history.length; i++) {
-      const move = history[i];
-      if (move.after !== targetPosition) {
-        chess.move(move);
-      } else {
-        chess.move(move);
-        break;
-      }
-    }
-    movesToAdd.forEach((move) => chess.move(move));
+  const handleSetCurrentGame = (game, type) => {
     setGameData({
-      type: 'fen',
-      game: chess,
-      move: 0,
-    });
-    setTargetPosition(
-      chess.history({ verbose: true }).slice(-1)[0].after
-    );
-  };
-
-  const handleSetCurrentGame = (game) => {
-    setGameData({
-      type: 'fen',
+      type,
       game,
       move: 0,
     });
-    setTargetPosition(
-      game.history({ verbose: true }).slice(-1)[0].after
-    );
+    if (game.history().length) {
+      setTargetPosition(
+        game.history({ verbose: true }).slice(-1)[0].after
+      );
+    } else {
+      setTargetPosition('start');
+    }
   };
 
   return (
@@ -97,9 +89,11 @@ const App = () => {
       <hr />
       <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
         <CurrentGame
-          currentEval={currentEval}
+          orientation={orientation}
           gameData={gameData}
           setTargetPosition={setTargetPosition}
+          setCurrentGame={handleSetCurrentGame}
+          setOrientation={setOrientation}
         />
         <ChessData setCurrentGame={handleSetCurrentGame} />
       </div>
@@ -113,7 +107,11 @@ const App = () => {
         handleGetPreviews={getPreviews}
       />
       <hr />
-      <PreviewGames games={games} updateGame={handleUpdateGame}  />
+      <PreviewGames
+        games={games}
+        orientation={orientation}
+        setCurrentGame={handleSetCurrentGame}
+      />
     </div>
   );
 };

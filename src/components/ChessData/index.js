@@ -27,17 +27,22 @@ const ChessData = ({ setCurrentGame }) => {
     try {
       setFetching(true);
       const games = await getGames(archiveLink);
-      setGames(games);
+      if (Array.isArray(games)) {
+        setGames(games);
+      } else {
+        alert('No games found for this month.')
+        setGames([]);
+      }
       setFetching(false);
     } catch (error) {
       console.error('Error fetching games:', error);
     }
   };
 
-  const handleUpdateGame = (pgn) => {
+  const handleSetPgn = (pgn) => {
     const chess = new Chess();
     chess.loadPgn(pgn);
-    setCurrentGame(chess);
+    setCurrentGame(chess, 'pgn');
   };
 
   return (
@@ -96,7 +101,6 @@ const ChessData = ({ setCurrentGame }) => {
                     justifyContent: 'center',
                     width: '75%',
                     gap: '10px',
-                    borderBottom: '1px solid grey',
                     padding: '10px'
                   }}
                 >
@@ -113,12 +117,12 @@ const ChessData = ({ setCurrentGame }) => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column', gap: '5px' }}>
-                    <span style={{ color: game.result === 'win' ? 'green' : 'red' }}>Result: {game.result}</span>
+                    <span style={{ color: game.result === 'win' ? 'lawngreen' : 'red' }}>Result: {game.result}</span>
                     <span>Time Control: {game.time_control}</span>
                     <span>End Time: {game.end_time}</span>
                     <span>Game Type: {game.time_class}</span>
                     <button
-                      onClick={() => handleUpdateGame(game.pgn)}
+                      onClick={() => handleSetPgn(game.pgn)}
                     >
                       Copy PGN
                     </button>

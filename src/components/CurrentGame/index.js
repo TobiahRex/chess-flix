@@ -1,17 +1,26 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Chessboard } from 'react-chessboard';
-import { handleGetGameEvals } from '../../services';
+import { Chess } from 'chess.js';
+
+import EvalGraph from '../EvalGraph';
+import { handleGetGameEvals, handleGetPsxnEval } from '../../services';
 
 
 const CurrentGame = (props) => {
-  const { gameData, setTargetPosition } = props;
+  const {
+    gameData,
+    orientation,
+    setTargetPosition,
+    setCurrentGame,
+    setOrientation,
+  } = props;
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
-  const [boardPosition, setBoardPosition] = useState('start');
-  const [boardOrientation, setBoardOrientation] = useState('white');
+  const [boardPosition, setBoardPosition] = useState(gameData.game?.fen() || 'start');
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [fetching, setFetching] = useState(false);
   const [evals, setEvals] = useState([]);
+  const [singleEval, setSingleEval] = useState(0);
   const timerId = useRef(null);
 
   const handleNextMove = useCallback(() => {
@@ -23,7 +32,7 @@ const CurrentGame = (props) => {
       setTargetPosition(targetFen);
     } else {
       const move = gameData.game?.history({ verbose: true })[0];
-      const targetFen = move.before;
+      const targetFen = move?.after || 'start';
       setCurrentMoveIndex(0);
       setBoardPosition(targetFen);
       setTargetPosition(targetFen);
@@ -40,16 +49,56 @@ const CurrentGame = (props) => {
     }
   }, [currentMoveIndex, gameData, setTargetPosition]);
 
-  const handleReset = useCallback(() => {
-    setBoardPosition('start');
+  const handleReset = useCallback(() => { // TODO - there's a bug here
+    const history = gameData.game?.history({ verbose: true });
+    const targetFen = Array.isArray(history) ? history[0]?.after || 'start' : 'start';
+    setBoardPosition(targetFen);
     setCurrentMoveIndex(0);
-  }, []);
+  }, [gameData]);
 
   const handlePlayPause = useCallback(() => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   }, []);
 
-  const handleTargetMove = useCallback(
+  const handlePositionChange = async (from, to) => {
+    let targetFen = '';
+    let isLegal = false;
+    try {
+      if (gameData.game) {
+        isLegal = gameData.game.move({
+          from,
+          to,
+        });
+        targetFen = gameData.game.fen();
+        setTargetPosition(targetFen);
+      } else {
+        const newGame = new Chess();
+        isLegal = newGame.move({
+          from,
+          to,
+        });
+        setCurrentGame(newGame, 'fen');
+        targetFen = newGame.fen();
+      }
+      setCurrentMoveIndex((prevIndex) => prevIndex + 1);
+      setBoardPosition(targetFen);
+      setFetching(true);
+      const res = await handleGetPsxnEval({ fen: targetFen });
+      const { evaluation } = res;
+      setFetching(false);
+      setEvals((prevEvals) => prevEvals.concat(evaluation));
+      return isLegal;
+    } catch (e) {
+      alert(e.message);
+    }
+    finally {
+      setFetching(false);
+      setBoardPosition((prevPosition) => prevPosition);
+      return isLegal;
+    }
+  };
+
+  const handleNotationClick = useCallback(
     (move) => {
       setCurrentMoveIndex(move.index - 1);
       const targetFen = move.after;
@@ -59,25 +108,32 @@ const CurrentGame = (props) => {
     [setTargetPosition]
   );
 
+  const handleNewGame = useCallback(() => {
+    setCurrentGame(new Chess(), 'fen');
+    setCurrentMoveIndex(0);
+    setEvals([]);
+    setSingleEval(0);
+  }, [setCurrentGame]);
+
   useEffect(() => {
-    const getEvals = async (moves) => {
+    const getManyEvals = async (moves) => {
       setFetching(true);
       const evals = await handleGetGameEvals({
-        fen: moves[0].before,
+        fen: moves[0]?.before || gameData.game?.fen() || 'start',
         moves: moves.map((move) => move.lan),
       })
       setEvals(evals?.evaluations || []);
       setFetching(false);
     };
-
+    const history = gameData.game?.history({ verbose: true });
     if (gameData.game?.history().length && !fetching) {
-      getEvals(gameData.game?.history({ verbose: true }));
+      getManyEvals(history);
     }
-    const targetFen = gameData.game?.history({ verbose: true })[0].before
+    const firstMove = Array.isArray(history) ? history[0] || {} : {};
+    const targetFen = firstMove?.after || gameData.game?.fen() || 'start';
     setBoardPosition(targetFen);
     setTargetPosition(targetFen);
     setCurrentMoveIndex(0);
-
     return () => {
       clearInterval(timerId.current);
     };
@@ -120,21 +176,21 @@ const CurrentGame = (props) => {
         {moveList.map((movePair, index) => (
           <li key={index} style={{ textAlign: 'left' }}>
             <button
-              onClick={() => handleTargetMove(movePair[0])}
+              onClick={() => handleNotationClick(movePair[0])}
               style={{
                 border: 'none',
                 padding: 'none',
                 cursor: 'pointer',
                 fontSize: '16px',
                 background: 'none',
-                fontWeight: movePair[0].index - 1 === currentMoveIndex ? 'bold' : 'normal',
+                color: movePair[0].index - 1 === currentMoveIndex ? '#57EAFF' : '#BABABA',
               }}
             >
               {`${movePair[0].san}, `}
             </button>
             {movePair[1] && (
               <button
-                onClick={() => handleTargetMove(movePair[1])}
+                onClick={() => handleNotationClick(movePair[1])}
                 style={{
                   border: 'none',
                   padding: 'none',
@@ -142,7 +198,7 @@ const CurrentGame = (props) => {
                   cursor: 'pointer',
                   fontSize: '16px',
                   background: 'none',
-                  fontWeight: movePair[1].index - 1 === currentMoveIndex ? 'bold' : 'normal',
+                  color: movePair[1].index - 1 === currentMoveIndex ? '#57EAFF' : '#BABABA',
                 }}
               >
                 {movePair[1].san}
@@ -152,8 +208,9 @@ const CurrentGame = (props) => {
         ))}
       </ol>
     );
-  }, [currentMoveIndex, gameData.game, handleTargetMove]);
+  }, [currentMoveIndex, gameData.game, handleNotationClick]);
 
+  const nextEval = evals[currentMoveIndex] || singleEval;
   return (
     <div id="current-game" style={{ display: 'flex', gap: '20px' }}>
       <div
@@ -165,78 +222,123 @@ const CurrentGame = (props) => {
           gap: '10px',
         }}
       >
+        <button
+          onClick={handleNewGame}
+          style={{ width: '150px', height: '40px', fontSize: '20px' }}
+        >
+          New Game
+        </button>
         <>
           <strong>Current Evaluation</strong>
           <strong
             style={{
               fontSize: '20px',
-              color: evals.length ? (evals[currentMoveIndex] > 0 ? 'green' : 'red') : 'black',
+              color: nextEval ? (nextEval > 0 ? 'lawngreen' : 'red') : 'black',
             }}
           >
             {
               fetching
                 ? '...'
-                : (evals.length ? evals[currentMoveIndex] / 100 + ' ' : 0)
+                : (nextEval ? nextEval / 100 + ' ' : 0)
             }
           </strong>
         </>
+        {
+          gameData.game?.header()?.White
+          ? (
+            <div>
+              <strong>
+                {
+                  orientation === 'white'
+                    ? `${gameData.game?.header()?.Black}: ${gameData.game?.header()?.BlackElo}`
+                    : `${gameData.game?.header()?.White}: ${gameData.game?.header()?.WhiteElo}`
+                }
+              </strong>
+            </div>
+          )
+          : null
+        }
         <Chessboard
           position={boardPosition}
-          draggable={false}
           boardWidth={500}
-          boardOrientation={boardOrientation}
+          showNotation={false}
+          boardOrientation={orientation}
+          onPieceDrop={(from, to) => {
+            const isLegal = handlePositionChange(from, to);
+            return isLegal;
+          }}
         />
-        <div>
+        {
+          gameData.game?.header()?.White
+          ? (
+            <div>
+              <strong>
+                {
+                  orientation === 'white'
+                    ? `${gameData.game?.header()?.White}: ${gameData.game?.header()?.WhiteElo}`
+                    : `${gameData.game?.header()?.Black}: ${gameData.game?.header()?.BlackElo}`
+                }
+              </strong>
+            </div>
+          )
+          : null
+        }
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '5px',
+          }}
+        >
+          <button
+            onClick={handleReset}
+            disabled={!gameData.game?.history().length || !gameData.game}
+            style={{
+              cursor: 'pointer',
+              fontSize: '24px'
+            }}
+          >
+            ⏮️
+          </button>
           <button
             onClick={handlePreviousMove}
             disabled={currentMoveIndex === 0 || !gameData.game}
             style={{
-              marginRight: '10px',
-              padding: '5px 10px',
               cursor: 'pointer',
+              fontSize: '24px'
             }}
           >
-            Previous
+            ⏪
+          </button>
+          <button
+            onClick={handlePlayPause}
+            style={{ fontSize: '24px', cursor: 'pointer' }}
+          >
+            {isPlaying ? '⏸' : '▶️'}
           </button>
           <button
             onClick={handleNextMove}
             disabled={currentMoveIndex >= gameData.game?.history().length || !gameData.game}
             style={{
-              marginRight: '10px',
-              padding: '5px 10px',
               cursor: 'pointer',
+              fontSize: '24px'
             }}
           >
-            Next
-          </button>
-          <button
-            onClick={handleReset}
-            disabled={!gameData.game?.history().length || !gameData.game}
-            style={{
-              marginRight: '10px',
-              padding: '5px 10px',
-              cursor: 'pointer',
-            }}
-          >
-            Reset
-          </button>
-          <button
-            onClick={handlePlayPause}
-            style={{ fontSize: '16px', cursor: 'pointer' }}
-          >
-            {isPlaying ? '⏸' : '▶️'}
+            ⏩
           </button>
           <button
             onClick={() =>
-              setBoardOrientation((prevOrientation) =>
+              setOrientation((prevOrientation) =>
                 prevOrientation === 'white' ? 'black' : 'white'
               )
             }
-            style={{ fontSize: '16px', cursor: 'pointer' }}
+            style={{ fontSize: '24px', cursor: 'pointer', marginLeft: '20px' }}
           >
             🔄
           </button>
         </div>
+        <EvalGraph evals={evals} history={gameData?.game?.history({ verbose: true }) || []} />
         <div style={{ display: 'flex', gap: '10px', maxWidth: '100px' }}>
           Speed&nbsp;
           <input

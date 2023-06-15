@@ -1,13 +1,13 @@
-export default async function handleGetCurrentEval(requestBody) {
+export default async function handleResetGame() {
   try {
-    const response = await fetch('http://127.0.0.1:5000/position-eval', {
+    const response = await fetch('http://127.0.0.1:5000/reset', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({}),
       mode: 'cors',
-    });
+    })
     if (!response.ok) {
       const err = Error('Network response was not ok');
       err.response = response;
@@ -16,7 +16,7 @@ export default async function handleGetCurrentEval(requestBody) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching current evaluation:', error);
-    return { evaluation: 0 }
+    console.error('Error fetching games:', error);
+    return [];
   }
 };

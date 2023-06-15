@@ -22,7 +22,7 @@ export default function AnalysisControls(props) {
           name="analysis-depth"
           type="range"
           min="1"
-          max="30"
+          max="40"
           value={depth}
           onChange={(e) => setDepth(e.target.value)}
         />
@@ -52,6 +52,7 @@ export default function AnalysisControls(props) {
             marginRight: '10px',
             padding: '5px 10px',
             cursor: 'pointer',
+            backgroundColor: '#24221e'
           }}
         >
           {fetching ? 'Analyzing...' : 'Analyze'}

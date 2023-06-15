@@ -53,6 +53,7 @@ export async function getGames(archiveUrl) {
     return myGames;
   } catch (error) {
     console.error('Error fetching games:', error);
+    return [];
   }
 };
 

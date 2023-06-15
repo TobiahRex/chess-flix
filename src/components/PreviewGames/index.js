@@ -4,13 +4,13 @@ import { Chess } from 'chess.js';
 import { parseCentipawn } from '../../utils';
 import EvalGraph from '../EvalGraph';
 
-const PreviewGame = ({ gameData, gameIx, updateGame }) => {
+const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => {
   const [preview, setPreview] = useState(gameData.startingPosition);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(10);
   const [evaluation, setEvaluation] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [orientation, setBoardOrientation] = useState('white');
+  const [orientation, setBoardOrientation] = useState(boardOrientation);
   const timerId = useRef(null);
   const gameRef = useRef(new Chess());
 
@@ -59,10 +59,23 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   };
 
-  const handleSetPosition = () => {
+  const handleSetPosition = (movesToAdd) => {
     clearInterval(timerId.current);
-    const moves = gameRef.current.history().slice(0, currentIndex + 1);
-    updateGame(moves.slice(0));
+    const currentPosition = gameRef.current.history({ verbose: true })[currentIndex]?.after;
+    const originalHistory = gameData.game?.history({ verbose: true });
+    const originalPreMoves = originalHistory.slice(0, currentIndex + 1);
+    const chess = new Chess();
+    for (let i = 0; i < originalHistory.length; i++) {
+      const move = originalHistory[i];
+      if (move.after !== currentPosition) {
+        chess.move(move);
+      } else {
+        chess.move(move);
+        break;
+      }
+    }
+    movesToAdd.forEach((move) => chess.move(move));
+    setCurrentGame(chess, 'fen');
   };
 
   const playMove = useCallback((index) => {
@@ -110,7 +123,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
                   cursor: 'pointer',
                   fontSize: '16px',
                   background: 'none',
-                  fontWeight: currentIndex === index ? 'bold' : 'normal',
+                  color: currentIndex === index ? '#57EAFF' : '#BABABA',
                 }}
               >
                 {index % 2 === 0
@@ -119,19 +132,20 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
               </button>
             ))}
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button type="button" onClick={handlePreviousMove} style={{ cursor: 'pointer' }}>
-            ⏮
+        <div style={{ display: 'flex', gap: '5px' }}>
+          <button type="button" onClick={handlePreviousMove} style={{ cursor: 'pointer', fontSize: '24px' }}>
+            ⏪
           </button>
-          <button type="button" onClick={handlePlayPause} style={{ cursor: 'pointer' }}>
-            {isPlaying ? '⏸' : '▶️'}
+          <button type="button" onClick={handlePlayPause} style={{ cursor: 'pointer', fontSize: '24px' }}>
+            {isPlaying ? '⏸️' : '▶️'}
           </button>
-          <button type="button" onClick={handleNextMove} style={{ cursor: 'pointer' }}>
+          <button type="button" onClick={handleNextMove} style={{ cursor: 'pointer', fontSize: '24px' }}>
             ⏩
           </button>
           <button
             type="button"
             onClick={() => setBoardOrientation(orientation === 'white' ? 'black' : 'white')}
+            style={{ cursor: 'pointer', 'fontSize': '24px' }}
           >
             🔄
           </button>
@@ -157,12 +171,12 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
         <div style={{ display: 'flex', gap: '10px' }}>
           Evaluation&nbsp;
           {evaluation > 0 ? (
-            <span style={{ color: 'green' }}>{parseCentipawn(evaluation)}</span>
+            <span style={{ color: 'lawngreen' }}>{parseCentipawn(evaluation)}</span>
           ) : (
             <span style={{ color: 'red' }}>{parseCentipawn(evaluation)}</span>
           )}
         </div>
-        <EvalGraph gameRef={gameRef} gameData={gameData} />
+        <EvalGraph history={gameRef.current.history({ verbose: 'true' }) || []} evals={gameData.evaluations} />
       </div>
       <div style={{ display: 'flex', gap: '10px', maxWidth: '100px' }}>
         Speed&nbsp;
@@ -172,7 +186,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
           type="range"
           value={speed}
           min="0.5"
-          max="5"
+          max="10"
           onChange={(e) => setSpeed(e.target.value)}
         />
         <label htmlFor={`speed-${gameIx}`}>
@@ -183,7 +197,7 @@ const PreviewGame = ({ gameData, gameIx, updateGame }) => {
   );
 };
 
-const PreviewGames = ({ games, updateGame }) => {
+const PreviewGames = ({ games, updateGame, orientation }) => {
   return (
     <div
       id="game-grid"
@@ -199,6 +213,7 @@ const PreviewGames = ({ games, updateGame }) => {
           gameData={gameData}
           gameIx={index}
           updateGame={updateGame}
+          boardOrientation={orientation}
         />
       ))}
     </div>

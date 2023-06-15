@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 import { parseCentipawn } from "../../utils";
 import Chart from 'chart.js/auto';
 
-export default function EvalGraph({ gameData, gameRef }) {
+export default function EvalGraph({ evals, history }) {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
 
   useEffect(() => {
-    const labels = gameRef.current?.history({ verbose: true }).map((move, index) => `${index + 1}.${move.san}`);
-    const data = gameData.evaluations.map((evaluation) => parseCentipawn(evaluation));
+    const labels = history.map((move, index) => `${index + 1}.${move.san}`) || [];
+    const data = evals?.map((evaluation) => parseCentipawn(evaluation));
 
     if (chartRef.current) {
       if (chartInstanceRef.current) {
@@ -23,7 +23,7 @@ export default function EvalGraph({ gameData, gameRef }) {
           datasets: [
             {
               data: data,
-              borderColor: 'rgba(0, 0, 250, 0.4)',
+              borderColor: 'gray',
               borderWidth: 1,
               backgroundColor: (ctx) => {
                 const values = ctx.chart.data.datasets[0].data;
@@ -50,11 +50,11 @@ export default function EvalGraph({ gameData, gameRef }) {
         },
       });
     }
-  }, [gameData, gameRef]);
+  }, [evals, history]);
 
   return (
     <div>
-      <canvas ref={chartRef} minWidth={350} height={150} />
+      <canvas ref={chartRef} width={350} height={150} />
     </div>
   );
 }
