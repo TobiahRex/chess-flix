@@ -13,7 +13,7 @@ const App = () => {
   const [games, setGamePreviews] = useState([]);
   const [previewCount, setPreviewCount] = useState(3);
   const [depth, setDepth] = useState(20);
-  const [gameData, setGameData] = useState({ type: '', game: null, move: 0 });
+  const [gameData, setGameData] = useState({ type: '', game: null, radarFeatures: [], move: 0 });
   const [fetching, setFetching] = useState(false);
   const [orientation, setOrientation] = useState('white');
   const [targetPosition, setTargetPosition] = useState('');
@@ -85,6 +85,7 @@ const App = () => {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
         <GameSubmission handleGameSubmission={handleGameSubmission} />
         <GameData gameData={gameData} />
+        <ChessData setCurrentGame={handleSetCurrentGame} />
       </div>
       <hr />
       <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
@@ -95,7 +96,6 @@ const App = () => {
           setCurrentGame={handleSetCurrentGame}
           setOrientation={setOrientation}
         />
-        <ChessData setCurrentGame={handleSetCurrentGame} />
       </div>
       <hr />
       <AnalysisControls

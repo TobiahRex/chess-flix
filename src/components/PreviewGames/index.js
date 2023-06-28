@@ -203,8 +203,9 @@ const PreviewGames = ({ games, updateGame, orientation }) => {
       id="game-grid"
       style={{
         display: 'flex',
+        flexDirection: 'column',
         flexWrap: 'wrap',
-        maxWidth: '100%',
+        width: '100%',
       }}
     >
       {games.map((gameData, index) => (

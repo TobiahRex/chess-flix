@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 
+import RadarFeatures from '../RadarFeatures';
 import EvalGraph from '../EvalGraph';
 import { handleGetGameEvals, handleGetPsxnEval } from '../../services';
 
@@ -20,6 +21,7 @@ const CurrentGame = (props) => {
   const [speed, setSpeed] = useState(1);
   const [fetching, setFetching] = useState(false);
   const [evals, setEvals] = useState([]);
+  const [radarFeatures, setRadarFeatures] = useState([]);
   const [singleEval, setSingleEval] = useState(0);
   const timerId = useRef(null);
 
@@ -123,6 +125,7 @@ const CurrentGame = (props) => {
         moves: moves.map((move) => move.lan),
       })
       setEvals(evals?.evaluations || []);
+      setRadarFeatures(evals?.radar_features || []);
       setFetching(false);
     };
     const history = gameData.game?.history({ verbose: true });
@@ -172,7 +175,7 @@ const CurrentGame = (props) => {
     }
 
     return (
-      <ol style={{ marginTop: '0px', overflow: 'scroll', maxHeight: '550px' }}>
+      <ol style={{ marginTop: '0px', overflow: 'scroll', height: '865px' }}>
         {moveList.map((movePair, index) => (
           <li key={index} style={{ textAlign: 'left' }}>
             <button
@@ -368,6 +371,13 @@ const CurrentGame = (props) => {
           <hr />
           {renderMoveList()}
         </div>
+      </div>
+      <div>
+        <RadarFeatures
+          fetching={fetching}
+          radarFeatures={radarFeatures}
+          currentMoveIndex={currentMoveIndex}
+        />
       </div>
     </div>
   );

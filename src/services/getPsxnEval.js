@@ -1,6 +1,6 @@
 export default async function handleGetPsxnEval(requestBody) {
   try {
-    const response = await fetch('http://127.0.0.1:5000/position-eval', {
+    const response = await fetch('http://127.0.0.1:5000/eval/position', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
