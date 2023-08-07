@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { parseCentipawn } from "../../utils";
 import Chart from 'chart.js/auto';
 
-export default function EvalGraph({ evals, history }) {
+export default function EvalGraph({ key, evals, history }) {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
 
@@ -50,10 +50,10 @@ export default function EvalGraph({ evals, history }) {
         },
       });
     }
-  }, [evals, history]);
+  }, [key]);
 
   return (
-    <div>
+    <div key={history.join(',')}>
       <canvas ref={chartRef} width={350} height={150} />
     </div>
   );

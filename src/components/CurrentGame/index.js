@@ -3,7 +3,7 @@ import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 
 import EvalGraph from '../EvalGraph';
-import { handleGetGameEvals, handleGetPsxnEval } from '../../services';
+import { handleGetGameEvals, handleGetPsxnEval, handleGameReset } from '../../services';
 
 
 const CurrentGame = (props) => {
@@ -86,7 +86,7 @@ const CurrentGame = (props) => {
       const res = await handleGetPsxnEval({ fen: targetFen });
       const { evaluation } = res;
       setFetching(false);
-      setEvals((prevEvals) => prevEvals.concat(evaluation));
+      setEvals((prevEvals) => prevEvals.slice(0).concat(evaluation));
       return isLegal;
     } catch (e) {
       alert(e.message);
@@ -108,7 +108,8 @@ const CurrentGame = (props) => {
     [setTargetPosition]
   );
 
-  const handleNewGame = useCallback(() => {
+  const handleNewGame = useCallback(async () => {
+    await handleGameReset();
     setCurrentGame(new Chess(), 'fen');
     setCurrentMoveIndex(0);
     setEvals([]);
@@ -210,7 +211,7 @@ const CurrentGame = (props) => {
     );
   }, [currentMoveIndex, gameData.game, handleNotationClick]);
 
-  const nextEval = evals[currentMoveIndex] || singleEval;
+  const nextEval = evals[currentMoveIndex] || evals[currentMoveIndex - 1];
   return (
     <div id="current-game" style={{ display: 'flex', gap: '20px' }}>
       <div

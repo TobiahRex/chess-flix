@@ -1,6 +1,6 @@
 export default async function handleGetGameEvals(requestBody) {
   try {
-    const response = await fetch('http://127.0.0.1:5000/game-evals', {
+    const response = await fetch('http://127.0.0.1:5000/eval/game', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

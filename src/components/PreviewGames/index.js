@@ -176,7 +176,11 @@ const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => 
             <span style={{ color: 'red' }}>{parseCentipawn(evaluation)}</span>
           )}
         </div>
-        <EvalGraph history={gameRef.current.history({ verbose: 'true' }) || []} evals={gameData.evaluations} />
+        <EvalGraph
+          key={gameRef.current.history({ verbose: 'true' })?.join(',')}
+          history={gameRef.current.history({ verbose: 'true' }) || []}
+          evals={gameData.evaluations}
+        />
       </div>
       <div style={{ display: 'flex', gap: '10px', maxWidth: '100px' }}>
         Speed&nbsp;
