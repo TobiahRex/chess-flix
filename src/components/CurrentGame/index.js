@@ -3,7 +3,7 @@ import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 
 import EvalGraph from '../EvalGraph';
-import { handleGetGameEvals, handleGetPsxnEval, handleGameReset } from '../../services';
+import { getGameEvals, getPsxnEval, gameReset } from '../../services';
 
 
 const CurrentGame = (props) => {
@@ -62,10 +62,10 @@ const CurrentGame = (props) => {
 
   const handlePositionChange = async (from, to) => {
     let targetFen = '';
-    let isLegal = false;
+    let nextMove = {};
     try {
       if (gameData.game) {
-        isLegal = gameData.game.move({
+        nextMove = gameData.game.move({
           from,
           to,
         });
@@ -73,7 +73,7 @@ const CurrentGame = (props) => {
         setTargetPosition(targetFen);
       } else {
         const newGame = new Chess();
-        isLegal = newGame.move({
+        nextMove = newGame.move({
           from,
           to,
         });
@@ -83,18 +83,18 @@ const CurrentGame = (props) => {
       setCurrentMoveIndex((prevIndex) => prevIndex + 1);
       setBoardPosition(targetFen);
       setFetching(true);
-      const res = await handleGetPsxnEval({ fen: targetFen });
+      const res = await getPsxnEval({ fen: targetFen });
       const { evaluation } = res;
       setFetching(false);
       setEvals((prevEvals) => prevEvals.slice(0).concat(evaluation));
-      return isLegal;
+      setSingleEval(evaluation);
+      return nextMove;
     } catch (e) {
       alert(e.message);
     }
     finally {
       setFetching(false);
-      setBoardPosition((prevPosition) => prevPosition);
-      return isLegal;
+      return nextMove;
     }
   };
 
@@ -109,7 +109,7 @@ const CurrentGame = (props) => {
   );
 
   const handleNewGame = useCallback(async () => {
-    await handleGameReset();
+    await gameReset();
     setCurrentGame(new Chess(), 'fen');
     setCurrentMoveIndex(0);
     setEvals([]);
@@ -119,7 +119,7 @@ const CurrentGame = (props) => {
   useEffect(() => {
     const getManyEvals = async (moves) => {
       setFetching(true);
-      const evals = await handleGetGameEvals({
+      const evals = await getGameEvals({
         fen: moves[0]?.before || gameData.game?.fen() || 'start',
         moves: moves.map((move) => move.lan),
       })
@@ -211,7 +211,7 @@ const CurrentGame = (props) => {
     );
   }, [currentMoveIndex, gameData.game, handleNotationClick]);
 
-  const nextEval = evals[currentMoveIndex] || evals[currentMoveIndex - 1];
+  const nextEval = singleEval || evals[currentMoveIndex] || evals[currentMoveIndex - 1];
   return (
     <div id="current-game" style={{ display: 'flex', gap: '20px' }}>
       <div
@@ -339,7 +339,10 @@ const CurrentGame = (props) => {
             🔄
           </button>
         </div>
-        <EvalGraph evals={evals} history={gameData?.game?.history({ verbose: true }) || []} />
+        <EvalGraph
+          evals={evals}
+          history={gameData?.game?.history({ verbose: true }) || []}
+        />
         <div style={{ display: 'flex', gap: '10px', maxWidth: '100px' }}>
           Speed&nbsp;
           <input

@@ -7,7 +7,7 @@ import PreviewGames from './components/PreviewGames';
 import ChessData from './components/ChessData';
 import './App.css';
 import AnalysisControls from './components/AnalysisControls';
-import { handleGetPreviews, handleGameReset } from './services';
+import { getPreviews, gameReset } from './services';
 
 const App = () => {
   const [games, setGamePreviews] = useState([]);
@@ -19,7 +19,7 @@ const App = () => {
   const [targetPosition, setTargetPosition] = useState('');
 
   const handleGameSubmission = async (text) => {
-    const res = await handleGameReset();
+    const res = await gameReset();
     if (res.error) {
       alert(res.error);
       return;
@@ -48,10 +48,10 @@ const App = () => {
     setGamePreviews([]);
   };
 
-  const getPreviews = async () => {
+  const handleGetPreviews = async () => {
     if (previewCount > 0) {
       setFetching(true);
-      const data = await handleGetPreviews({
+      const data = await getPreviews({
         fen: targetPosition,
         previewCount,
         depth,
@@ -104,7 +104,7 @@ const App = () => {
         setDepth={setDepth}
         previewCount={previewCount}
         setPreviewCount={setPreviewCount}
-        handleGetPreviews={getPreviews}
+        handleGetPreviews={handleGetPreviews}
       />
       <hr />
       <PreviewGames

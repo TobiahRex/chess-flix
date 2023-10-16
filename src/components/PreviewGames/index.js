@@ -6,7 +6,7 @@ import EvalGraph from '../EvalGraph';
 
 const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => {
   const [preview, setPreview] = useState(gameData.startingPosition);
-  const [speed, setSpeed] = useState(10);
+  const [speed, setSpeed] = useState(2);
   const [evaluation, setEvaluation] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -59,14 +59,13 @@ const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => 
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   };
 
-  const handleSetPosition = (movesToAdd) => {
+  const handleSetPosition = () => {
     clearInterval(timerId.current);
-    const currentPosition = gameRef.current.history({ verbose: true })[currentIndex]?.after;
-    const originalHistory = gameData.game?.history({ verbose: true });
-    const originalPreMoves = originalHistory.slice(0, currentIndex + 1);
-    const chess = new Chess();
-    for (let i = 0; i < originalHistory.length; i++) {
-      const move = originalHistory[i];
+    const history = gameRef.current.history({ verbose: true });
+    const currentPosition = history[currentIndex]?.after;
+    const chess = new Chess(gameData.startingPosition);
+    for (let i = 0; i < history.length; i++) {
+      const move = history[i];
       if (move.after !== currentPosition) {
         chess.move(move);
       } else {
@@ -74,7 +73,6 @@ const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => 
         break;
       }
     }
-    movesToAdd.forEach((move) => chess.move(move));
     setCurrentGame(chess, 'fen');
   };
 
@@ -177,7 +175,6 @@ const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => 
           )}
         </div>
         <EvalGraph
-          key={gameRef.current.history({ verbose: 'true' })?.join(',')}
           history={gameRef.current.history({ verbose: 'true' }) || []}
           evals={gameData.evaluations}
         />
@@ -201,7 +198,7 @@ const PreviewGame = ({ gameData, gameIx, setCurrentGame, boardOrientation }) => 
   );
 };
 
-const PreviewGames = ({ games, updateGame, orientation }) => {
+const PreviewGames = ({ games, setCurrentGame, orientation }) => {
   return (
     <div
       id="game-grid"
@@ -216,7 +213,7 @@ const PreviewGames = ({ games, updateGame, orientation }) => {
           key={index}
           gameData={gameData}
           gameIx={index}
-          updateGame={updateGame}
+          setCurrentGame={setCurrentGame}
           boardOrientation={orientation}
         />
       ))}
